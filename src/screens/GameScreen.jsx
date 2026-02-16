@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../api/client';
 
 export default function GameScreen({ gameId, teams, onAddRound, onFinish }) {
   const [score, setScore] = useState({ teamATotal: 0, teamBTotal: 0 });
 
   useEffect(() => {
     const fetchScore = async () => {
-      const res = await fetch(`http://localhost:8080/games/${gameId}/score`);
-      const data = await res.json();
+      const data = await apiFetch(`/games/${gameId}/score`);
       setScore(data);
     };
     fetchScore();

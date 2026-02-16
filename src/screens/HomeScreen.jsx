@@ -1,15 +1,15 @@
 import { useState } from 'react';
+import { apiFetch } from '../api/client';
 
 export default function HomeScreen({ onGameCreated }) {
   const [names, setNames] = useState({ teamA: 'Nosotros', teamB: 'Ellos' });
 
   const createGame = async () => {
-    const res = await fetch('http://localhost:8080/games', {
+    const data = await apiFetch('/games', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(names)
     });
-    const data = await res.json();
     onGameCreated(data.id, names.teamA, names.teamB);
   };
 
