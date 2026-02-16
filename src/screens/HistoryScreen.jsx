@@ -44,7 +44,7 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-slate-500 uppercase tracking-widest animate-pulse">Consultando base de datos...</div>
+        <div className="text-center py-20 text-slate-500 uppercase tracking-widest animate-pulse">Cargando...</div>
       ) : games.length === 0 ? (
         <div className="text-center py-20 text-slate-500 border border-dashed border-slate-800 rounded-3xl">
           No hay partidas registradas aún.
