@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../api/client';
 
 export default function HistoryScreen({ onBack, onResumeGame }) {
   const [games, setGames] = useState([]);
@@ -7,8 +8,7 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch('http://localhost:8080/games');
-        const data = await res.json();
+        const data = await apiFetch('/games');
         
         // Ordenamos por fecha de creación (más reciente arriba)
         const sortedGames = data.sort((a, b) => 
