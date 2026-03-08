@@ -101,16 +101,13 @@ const TeamCard = ({ teamName, letter, form, setForm, otherLetter, isSaving }) =>
                         {!tieneCanastas && puntosIngresados > 0 && <span className="text-[8px] text-red-400 font-black animate-pulse uppercase">Resta por falta de canasta</span>}
                     </div>
                     <input
-                        type="text" disabled={isSaving}
+                        type="text"
+                        inputMode="numeric"
+                        disabled={isSaving}
                         value={form[`team${letter}Points`]}
                         placeholder="Ingresar fichas..."
                         className={`w-full bg-[#0f172a] border rounded-2xl p-4 text-center text-xl font-black outline-none transition-all ${puntosIngresados !== 0 ? (tieneCanastas || puntosIngresados < 0 ? 'border-emerald-500 text-white' : 'border-red-500 text-red-500') : 'border-slate-700 text-slate-400'}`}
-                        onChange={e => {
-                            const val = e.target.value;
-                            if (val === "" || val === "-" || /^-?\d*$/.test(val)) {
-                                setForm(prev => ({ ...prev, [`team${letter}Points`]: val }));
-                            }
-                        }}
+                        onChange={e => setForm(prev => ({ ...prev, [`team${letter}Points`]: e.target.value.replace(/[^0-9]/g, '') }))}
                     />
                 </div>
             </div>
