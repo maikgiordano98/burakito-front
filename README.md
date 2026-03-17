@@ -14,7 +14,6 @@ Frontend para contador de partidas de Burako. Permite crear partidas, cargar ron
 
 La app se conecta a **[Supabase](https://supabase.com)** para guardar partidas y rondas en PostgreSQL. Si no se configuran las variables de entorno de Supabase, usa **localStorage** del navegador como respaldo (datos solo en ese dispositivo).
 
-Configuración: ver `SUPABASE_SETUP.md`.
 
 ## Comandos
 

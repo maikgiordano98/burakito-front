@@ -4,6 +4,7 @@ import HomeScreen from './screens/HomeScreen';
 import GameScreen from './screens/GameScreen';
 import RoundScreen from './screens/RoundScreen';
 import HistoryScreen from './screens/HistoryScreen';
+import StatsScreen from './screens/StatsScreen';
 
 // Componente Wrapper para GameScreen que recupera los equipos de la URL o estado
 const GameWrapper = ({ teams, setTeams }) => {
@@ -66,15 +67,28 @@ export default function App() {
             <Route path="/game/:id/round" element={<RoundWrapper teams={teams} />} />
 
             {/* Historial */}
-            <Route path="/history" element={
-              <HistoryScreen
-                onBack={() => window.location.hash = '/'}
-                onResumeGame={(id, teamA, teamB) => {
-                  setTeams({ teamA, teamB });
-                  window.location.hash = `/game/${id}`;
-                }}
-              />
-            } />
+            <Route
+              path="/history"
+              element={
+                <HistoryScreen
+                  onBack={() => window.location.hash = '/'}
+                  onResumeGame={(id, teamA, teamB) => {
+                    setTeams({ teamA, teamB });
+                    window.location.hash = `/game/${id}`;
+                  }}
+                />
+              }
+            />
+
+            {/* Estadísticas */}
+            <Route
+              path="/stats"
+              element={
+                <StatsScreen
+                  onBack={() => window.location.hash = '/'}
+                />
+              }
+            />
 
             {/* Redirección por defecto */}
             <Route path="*" element={<Navigate to="/" />} />
@@ -85,15 +99,23 @@ export default function App() {
   );
 }
 
-// Pequeño componente para el botón del historial usando navegación de router
+// Botones del header (Historial + Stats)
 const HeaderButtons = () => {
   const navigate = useNavigate();
   return (
-    <button 
-      onClick={() => navigate('/history')} 
-      className="text-xs text-slate-400 hover:text-white transition-colors uppercase font-bold tracking-tighter"
-    >
-      HISTORIAL
-    </button>
+    <div className="flex items-center gap-3">
+      <button 
+        onClick={() => navigate('/history')} 
+        className="text-[11px] text-slate-400 hover:text-white transition-colors uppercase font-bold tracking-tighter"
+      >
+        Historial
+      </button>
+      <button 
+        onClick={() => navigate('/stats')} 
+        className="text-[11px] text-slate-500 hover:text-amber-400 transition-colors uppercase font-bold tracking-tighter"
+      >
+        Stats
+      </button>
+    </div>
   );
 };
