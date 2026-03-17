@@ -6,6 +6,7 @@ export default function GameScreen({ gameId, onAddRound, onFinish }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [showRounds, setShowRounds] = useState(false);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
 
   const WINNING_SCORE = 3000;
 
@@ -47,6 +48,16 @@ export default function GameScreen({ gameId, onAddRound, onFinish }) {
   const winner = scoreA >= WINNING_SCORE || scoreB >= WINNING_SCORE 
     ? (scoreA > scoreB ? gameData.teamA : gameData.teamB) 
     : null;
+
+  const handleForceFinish = async () => {
+    try {
+      await apiFetch(`/games/${gameId}/finish`, { method: 'POST' });
+      setShowFinishConfirm(false);
+    } catch (error) {
+      console.error("Error al finalizar partida:", error);
+    }
+    onFinish();
+  };
 
   return (
     <div className="space-y-8 py-6 animate-in fade-in duration-500">
@@ -151,8 +162,41 @@ export default function GameScreen({ gameId, onAddRound, onFinish }) {
             ))}
           </div>
         )}
-        <button onClick={() => { if(window.confirm("¿Finalizar partida?")) onFinish() }} className="w-full text-slate-600 text-[10px] font-black uppercase tracking-widest py-4 hover:text-red-400 transition-colors">Finalizar Partida</button>
+        <button
+          onClick={() => setShowFinishConfirm(true)}
+          className="w-full text-slate-600 text-[10px] font-black uppercase tracking-widest py-4 hover:text-red-400 transition-colors"
+        >
+          Dar por finalizada ahora
+        </button>
       </div>
+
+      {showFinishConfirm && (
+        <div className="fixed inset-0 z-[90] bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="bg-[#1e293b] border border-emerald-600/60 p-8 rounded-[32px] w-full max-w-xs text-center space-y-6 shadow-2xl animate-in zoom-in duration-200">
+            <div className="text-4xl">🏁</div>
+            <div className="space-y-2">
+              <h3 className="text-white font-black uppercase text-sm tracking-widest">¿Finalizar partida?</h3>
+              <p className="text-slate-300 text-[10px] leading-relaxed uppercase font-bold">
+                Se tomará como resultado final el marcador actual y ganará el que más puntos tenga.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setShowFinishConfirm(false)}
+                className="py-3 rounded-xl bg-slate-800 text-slate-300 font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleForceFinish}
+                className="py-3 rounded-xl bg-emerald-500 text-[#020617] font-black text-[10px] uppercase tracking-widest hover:bg-emerald-400 transition-colors"
+              >
+                Finalizar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

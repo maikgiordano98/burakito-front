@@ -34,6 +34,11 @@ export const apiFetch = async (endpoint, options = {}) => {
       return {};
     }
 
+    if (path[0] === 'games' && path.length === 3 && path[2] === 'finish' && method === 'POST') {
+      await store.finishGame(path[1]);
+      return {};
+    }
+
     if (path[0] === 'games' && path.length === 2 && path[1] && method === 'DELETE') {
       await store.deleteGame(path[1]);
       return {};

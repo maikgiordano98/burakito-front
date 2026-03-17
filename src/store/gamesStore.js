@@ -73,3 +73,17 @@ export function deleteGame(gameId) {
   writeGames(games);
   return {};
 }
+
+export function finishGame(gameId) {
+  const games = readGames();
+  const index = games.findIndex((g) => g.id === gameId);
+  if (index === -1) return {};
+  const recalculated = recalculateGameTotals(games[index]);
+  games[index] = {
+    ...recalculated,
+    finished: true,
+    rounds: [],
+  };
+  writeGames(games);
+  return {};
+}
