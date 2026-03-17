@@ -163,3 +163,30 @@ export async function deleteGame(gameId) {
   if (error) throw error;
   return {};
 }
+
+export async function finishGame(gameId) {
+  const { data: roundsRows, error: roundsError } = await supabase
+    .from('rounds')
+    .select('*')
+    .eq('game_id', gameId);
+  if (roundsError) throw roundsError;
+
+  const rounds = (roundsRows || []).map(roundRowToApp);
+  const totalPointsA = rounds.reduce((s, r) => s + getTeamAScore(r), 0);
+  const totalPointsB = rounds.reduce((s, r) => s + getTeamBScore(r), 0);
+
+  const { error: updateError } = await supabase
+    .from('games')
+    .update({
+      total_points_a: totalPointsA,
+      total_points_b: totalPointsB,
+      finished: true,
+    })
+    .eq('id', gameId);
+  if (updateError) throw updateError;
+
+  const { error: deleteError } = await supabase.from('rounds').delete().eq('game_id', gameId);
+  if (deleteError) throw deleteError;
+
+  return {};
+}

@@ -9,6 +9,8 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
   // Estados para el borrado
   const [deleteId, setDeleteId] = useState(null); // ID de la partida a borrar
   const [isDeleting, setIsDeleting] = useState(false); // Estado de carga del borrado
+  const [finishId, setFinishId] = useState(null); // ID de la partida a finalizar
+  const [isFinishing, setIsFinishing] = useState(false); // Estado de carga al finalizar
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -42,6 +44,27 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
     }
   };
 
+  const handleFinish = async () => {
+    if (!finishId) return;
+    
+    setIsFinishing(true);
+    try {
+      await apiFetch(`/games/${finishId}/finish`, { method: 'POST' });
+      setGames(prevGames =>
+        prevGames.map(g =>
+          g.id === finishId
+            ? { ...g, finished: true }
+            : g
+        )
+      );
+      setFinishId(null);
+    } catch (error) {
+      console.error("Error al finalizar:", error);
+    } finally {
+      setIsFinishing(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-AR', {
@@ -55,7 +78,7 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10 relative">
       
-      {/* MODAL DE CONFIRMACIÓN AMIGABLE */}
+      {/* MODAL DE CONFIRMACIÓN DE BORRADO */}
       {deleteId && (
         <div className="fixed inset-0 z-[110] bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center p-6">
           <div className="bg-[#1e293b] border border-slate-700 p-8 rounded-[32px] w-full max-w-xs text-center space-y-6 shadow-2xl animate-in zoom-in duration-200">
@@ -82,6 +105,39 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
                 {isDeleting ? (
                   <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 ) : "Borrar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PARA FINALIZAR PARTIDA */}
+      {finishId && (
+        <div className="fixed inset-0 z-[110] bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="bg-[#1e293b] border border-emerald-600/60 p-8 rounded-[32px] w-full max-w-xs text-center space-y-6 shadow-2xl animate-in zoom-in duration-200">
+            <div className="text-4xl">🏁</div>
+            <div className="space-y-2">
+              <h3 className="text-white font-black uppercase text-sm tracking-widest">¿Finalizar partida?</h3>
+              <p className="text-slate-300 text-[10px] leading-relaxed uppercase font-bold">
+                Se tomará como resultado final el marcador actual y ganará el que más puntos tenga.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setFinishId(null)}
+                disabled={isFinishing}
+                className="py-3 rounded-xl bg-slate-800 text-slate-300 font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleFinish}
+                disabled={isFinishing}
+                className="py-3 rounded-xl bg-emerald-500 text-[#020617] font-black text-[10px] uppercase tracking-widest hover:bg-emerald-400 transition-colors flex items-center justify-center disabled:opacity-50"
+              >
+                {isFinishing ? (
+                  <div className="w-3 h-3 border-2 border-emerald-900/40 border-t-emerald-900 rounded-full animate-spin"></div>
+                ) : "Finalizar"}
               </button>
             </div>
           </div>
@@ -131,11 +187,33 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                    <p className="text-sm font-black text-white uppercase">{game.teamA}</p>
+                    <p
+                      className={`uppercase flex items-center gap-1 ${
+                        game.finished && game.totalPointsA > (game.totalPointsB ?? 0)
+                          ? 'text-base font-black text-slate-50 tracking-wider'
+                          : 'text-sm font-black text-slate-200'
+                      }`}
+                    >
+                      <span>{game.teamA}</span>
+                      {game.finished && game.totalPointsA > (game.totalPointsB ?? 0) && (
+                        <span className="text-lg leading-none drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]">🏆</span>
+                      )}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    <p className="text-sm font-black text-white uppercase">{game.teamB}</p>
+                    <p
+                      className={`uppercase flex items-center gap-1 ${
+                        game.finished && game.totalPointsB > (game.totalPointsA ?? 0)
+                          ? 'text-base font-black text-amber-300 tracking-wider'
+                          : 'text-sm font-black text-amber-400'
+                      }`}
+                    >
+                      <span>{game.teamB}</span>
+                      {game.finished && game.totalPointsB > (game.totalPointsA ?? 0) && (
+                        <span className="text-lg leading-none drop-shadow-[0_0_6px_rgba(250,204,21,0.7)]">🏆</span>
+                      )}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right bg-[#0f172a] p-3 rounded-2xl border border-slate-800 font-mono font-black text-xl">
@@ -146,16 +224,24 @@ export default function HistoryScreen({ onBack, onResumeGame }) {
               </div>
 
               {game.finished ? (
-                <div className="w-full py-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-center">
-                  <span className="text-emerald-500 text-[9px] font-black tracking-widest uppercase">Partida Finalizada</span>
+                <div className="w-full py-3 bg-slate-900/60 border border-slate-700/80 rounded-xl text-center">
+                  <span className="text-slate-400 text-[9px] font-black tracking-widest uppercase">Partida Finalizada</span>
                 </div>
               ) : (
-                <button
-                  onClick={() => onResumeGame(game.id, game.teamA, game.teamB)}
-                  className="w-full py-4 rounded-2xl text-[10px] font-black uppercase bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
-                >
-                  Retomar Partida
-                </button>
+                <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)] gap-3">
+                  <button
+                    onClick={() => onResumeGame(game.id, game.teamA, game.teamB)}
+                    className="w-full py-4 rounded-2xl text-[10px] font-black uppercase bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 transition-all"
+                  >
+                    Retomar Partida
+                  </button>
+                  <button
+                    onClick={() => setFinishId(game.id)}
+                    className="w-full py-4 rounded-2xl text-[9px] font-black uppercase bg-slate-800/60 border border-slate-600 text-slate-300 hover:bg-slate-700/80 transition-all"
+                  >
+                    Dar por finalizada
+                  </button>
+                </div>
               )}
             </div>
           ))}
