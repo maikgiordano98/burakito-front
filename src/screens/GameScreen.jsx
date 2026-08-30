@@ -101,11 +101,11 @@ export default function GameScreen({ gameId, onAddRound, onFinish }) {
 
         {showRounds && (
           <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-            {[...roundsWithHistory].reverse().map((r, idx) => (
+            {roundsWithHistory.map((r, idx) => (
               <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
                 <div className="bg-slate-800/50 px-4 py-3 flex justify-between items-center border-b border-slate-800/50">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-slate-500 uppercase">Ronda #{rounds.length - idx}</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase">Ronda #{r.roundNumber}</span>
                     <span className="text-[8px] font-bold text-amber-500/80 uppercase tracking-tighter">Parcial: {r.partialA} / {r.partialB}</span>
                   </div>
                   <div className="flex gap-4 font-mono font-black text-sm">

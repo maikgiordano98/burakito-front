@@ -50,7 +50,11 @@ export function addRound(gameId, roundPayload) {
   const games = readGames();
   const index = games.findIndex((g) => g.id === gameId);
   if (index === -1) return null;
+  
+  const roundNumber = (games[index].rounds?.length || 0) + 1;
+  
   const round = {
+    roundNumber,
     teamAPoints: roundPayload.teamAPoints ?? 0,
     teamBPoints: roundPayload.teamBPoints ?? 0,
     teamACanastasPuras: roundPayload.teamACanastasPuras ?? 0,
