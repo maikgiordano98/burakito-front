@@ -5,6 +5,7 @@ const WINNING_SCORE = 3000;
 
 function roundRowToApp(row) {
   return {
+    roundNumber: row.round_number ?? 0,
     teamAPoints: row.team_a_points ?? 0,
     teamBPoints: row.team_b_points ?? 0,
     teamACanastasPuras: row.team_a_canastas_puras ?? 0,
@@ -18,9 +19,10 @@ function roundRowToApp(row) {
   };
 }
 
-function roundAppToRow(payload, gameId) {
+function roundAppToRow(payload, gameId, roundNumber = 1) {
   return {
     game_id: gameId,
+    round_number: roundNumber,
     team_a_points: Number(payload.teamAPoints) || 0,
     team_b_points: Number(payload.teamBPoints) || 0,
     team_a_canastas_puras: Number(payload.teamACanastasPuras) || 0,
@@ -77,7 +79,8 @@ export async function getAllGames() {
     const { data: roundsRows, error: roundsError } = await supabase
       .from('rounds')
       .select('*')
-      .in('game_id', unfinishedIds);
+      .in('game_id', unfinishedIds)
+      .order('round_number', { ascending: true });
     if (roundsError) throw roundsError;
     (roundsRows || []).forEach((r) => {
       if (!roundsByGame[r.game_id]) roundsByGame[r.game_id] = [];
@@ -103,7 +106,7 @@ export async function getGameById(id) {
     .from('rounds')
     .select('*')
     .eq('game_id', id)
-    .order('id', { ascending: true });
+    .order('round_number', { ascending: true });
 
   if (roundsError) throw roundsError;
   return gameRowToApp(row, roundsRows || []);
@@ -124,7 +127,14 @@ export async function createGame(teamA, teamB) {
 }
 
 export async function addRound(gameId, roundPayload) {
-  const row = roundAppToRow(roundPayload, gameId);
+  const { data: existingRounds, error: countError } = await supabase
+    .from('rounds')
+    .select('*')
+    .eq('game_id', gameId);
+  if (countError) throw countError;
+  
+  const roundNumber = (existingRounds?.length || 0) + 1;
+  const row = roundAppToRow(roundPayload, gameId, roundNumber);
   const { error: insertError } = await supabase.from('rounds').insert(row);
   if (insertError) throw insertError;
 
@@ -132,7 +142,7 @@ export async function addRound(gameId, roundPayload) {
     .from('rounds')
     .select('*')
     .eq('game_id', gameId)
-    .order('id', { ascending: true });
+    .order('round_number', { ascending: true });
   if (roundsError) throw roundsError;
 
   const rounds = (roundsRows || []).map(roundRowToApp);
